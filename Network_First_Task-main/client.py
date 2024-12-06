@@ -92,6 +92,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--host", type=str,
                             default=api.DEFAULT_PROXY_HOST, help="The host to connect to.")
 
+
     args = arg_parser.parse_args()
 
     host = args.host

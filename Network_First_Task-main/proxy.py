@@ -147,6 +147,7 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
 
                 if cache_hit:
                     print(f"{client_prefix} Cache hit", end=" ,")
+
                 elif was_stale:
                     print(f"{client_prefix} Cache miss, stale response", end=" ,")
                 elif cached:

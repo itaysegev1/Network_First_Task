@@ -164,6 +164,7 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-p', '--port', type=int,
                             default=api.DEFAULT_SERVER_PORT, help='The port to listen on.')
+
     arg_parser.add_argument('-H', '--host', type=str,
                             default=api.DEFAULT_SERVER_HOST, help='The host to listen on.')
 
