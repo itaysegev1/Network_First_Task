@@ -132,7 +132,7 @@ if __name__ == "__main__":
     # Second request - should come from proxy cache
     client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
     # # Different expression - will go to server
-    # client((host, port), expr_2, show_steps=True, cache_result=True, cache_control=60)
+    client((host, port), expr_2, show_steps=True, cache_result=True, cache_control=60)
     # * Change in end (2)
     # # * Change in start (2)
     # client((host, port), expr, show_steps,
