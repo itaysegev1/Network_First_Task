@@ -8,6 +8,7 @@ CACHE_POLICY = True  # whether to cache responses or not
 # the maximum time that the response can be cached for (in seconds)
 CACHE_CONTROL = 2 ** 16 - 1
 
+
 def calculate(expression: api.Expr, steps: list[str] = []) -> tuple[numbers.Real, list[api.Expression]]:
     '''    
     Function which calculates the result of an expression and returns the result and the steps taken to calculate it.
@@ -44,7 +45,7 @@ def calculate(expression: api.Expr, steps: list[str] = []) -> tuple[numbers.Real
             arg, arg_steps = calculate(arg, arg_steps)
             for step in arg_steps[:-1]:
                 steps.append(api.FunctionCallExpr(expr.function,
-                               *(args + [step] + expr.args[len(args) + 1:])))
+                                                  *(args + [step] + expr.args[len(args) + 1:])))
             args.append(arg)
         steps.append(api.FunctionCallExpr(expr.function, *args))
         const = api.Constant(expr.function.function(*args))
@@ -97,7 +98,7 @@ def server(host: str, port: int) -> None:
         while True:
             try:
                 # Establish connection with client.
-                
+
                 client_socket, address = server_socket.accept()
 
                 # Create a new thread to handle the client request
@@ -122,11 +123,12 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
     with client_socket:  # closes the socket when the block is exited
         print(f"Conection established with {client_addr}")
         while True:
-            
+
             data = client_socket.recv(api.BUFFER_SIZE)
-            if not data: # * Change in start (1)
+            if not data:  # * Change in start (1)
                 break
                 # * Change in end (1)
+
             try:
 
                 try:
@@ -155,6 +157,7 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
             print(f"{client_prefix} Connection closed")
             print(f"Listening on {host}:{port}")
             # * Change in end (2)
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(

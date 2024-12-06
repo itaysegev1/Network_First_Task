@@ -174,7 +174,7 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
 
             # * Change in start (2)
             print(f"{client_prefix} Connection closed")
-            print(f"Listening on {proxy_host}:{proxy_port}")
+            print(f"Listening on {server_address[0]}:{server_address[1]}")
             # * Change in end (2)
 
 

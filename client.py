@@ -88,9 +88,9 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="A Calculator Client.")
 
     arg_parser.add_argument("-p", "--port", type=int,
-                            default=api.DEFAULT_SERVER_PORT, help="The port to connect to.")
+                            default=api.DEFAULT_PROXY_PORT, help="The port to connect to.")
     arg_parser.add_argument("-H", "--host", type=str,
-                            default=api.DEFAULT_SERVER_HOST, help="The host to connect to.")
+                            default=api.DEFAULT_PROXY_HOST, help="The host to connect to.")
 
     args = arg_parser.parse_args()
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     expr_2 = add_b(max_f(2, 3), 3)  # (2)
 
     # (3) '3 + ((4 * 2) / ((1 - 5) ** (2 ** 3)))' = 3.0001220703125
-    expr3 = add_b(3, div_b(mul_b(4, 2), pow_b(sub_b(1, 5), pow_b(2, 3)))) # (3)
+    # expr = add_b(3, div_b(mul_b(4, 2), pow_b(sub_b(1, 5), pow_b(2, 3)))) # (3)
 
     # (4) '((1 + 2) ** (3 * 4)) / (5 * 6)' = 17714.7
     # expr = div_b(pow_b(add_b(1, 2), mul_b(3, 4)), mul_b(5, 6)) # (4)
@@ -121,19 +121,24 @@ if __name__ == "__main__":
 
     # Change the following values according to your needs:
 
-    show_steps =True  # Request the steps of the calculation
+    show_steps = False  # Request the steps of the calculation
     cache_result = True  # Request to cache the result of the calculation
     # If the result is cached, this is the maximum age of the cached response
     # that the client is willing to accept (in seconds)
     cache_control = 2**16 - 1
-
     # * Change in start (2)
-    client((host, port), expr, show_steps,
-           cache_result, cache_control)
-    client((host, port), expr_2, show_steps,
-           cache_result, cache_control)
-    client((host, port), expr3, show_steps,
-                cache_result, cache_control)
-    client((host, port), expr, show_steps,
-           cache_result, cache_control)
+    # First request - will go to server
+    client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
+    # Second request - should come from proxy cache
+    client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
+    # # Different expression - will go to server
+    client((host, port), expr_2, show_steps=True, cache_result=True, cache_control=60)
     # * Change in end (2)
+    # # * Change in start (2)
+    # client((host, port), expr, show_steps,
+    #        cache_result, cache_control)
+    # client((host, port), expr, show_steps,
+    #        cache_result, cache_control)
+    # client((host, port), expr_2, show_steps,
+    #             cache_result, cache_control)
+    # # * Change in end (2)
