@@ -84,6 +84,8 @@ def client(server_address: tuple[str, int], expression: api.Expression, show_ste
     print(f"{server_prefix} Connection closed")
 
 
+
+
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="A Calculator Client.")
 
@@ -108,18 +110,17 @@ if __name__ == "__main__":
     expr_2 = add_b(max_f(2, 3), 3)  # (2)
 
     # (3) '3 + ((4 * 2) / ((1 - 5) ** (2 ** 3)))' = 3.0001220703125
-    # expr = add_b(3, div_b(mul_b(4, 2), pow_b(sub_b(1, 5), pow_b(2, 3)))) # (3)
+    expr3 = add_b(3, div_b(mul_b(4, 2), pow_b(sub_b(1, 5), pow_b(2, 3)))) # (3)
 
     # (4) '((1 + 2) ** (3 * 4)) / (5 * 6)' = 17714.7
-    # expr = div_b(pow_b(add_b(1, 2), mul_b(3, 4)), mul_b(5, 6)) # (4)
+    expr4 = div_b(pow_b(add_b(1, 2), mul_b(3, 4)), mul_b(5, 6)) # (4)
 
     # (5) '-(-((1 + (2 + 3)) ** -(4 + 5)))' = 9.92290301275212e-08
-    # expr = neg_u(neg_u(pow_b(add_b(1, add_b(2, 3)), neg_u(add_b(4, 5))))) # (5)
+    expr5 = neg_u(neg_u(pow_b(add_b(1, add_b(2, 3)), neg_u(add_b(4, 5))))) # (5)
 
     # (6) 'max(2, (3 * 4), log(e), (6 * 7), (9 / 8))' = 42
-    # expr = max_f(2, mul_b(3, 4), log_f(e_c), mul_b(6, 7), div_b(9, 8)) # (6)
+    expr6 = max_f(2, mul_b(3, 4), log_f(e_c), mul_b(6, 7), div_b(9, 8)) # (6)
     # * Change in end (1)
-
     # Change the following values according to your needs:
 
     show_steps = False  # Request the steps of the calculation
@@ -127,19 +128,37 @@ if __name__ == "__main__":
     # If the result is cached, this is the maximum age of the cached response
     # that the client is willing to accept (in seconds)
     cache_control = 2**16 - 1
-    # * Change in start (2)
-    # First request - will go to server
-    client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
-    # Second request - should come from proxy cache
-    client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
-    # # Different expression - will go to server
-    client((host, port), expr_2, show_steps=True, cache_result=True, cache_control=60)
-    # * Change in end (2)
-    # # * Change in start (2)
-    # client((host, port), expr, show_steps,
-    #        cache_result, cache_control)
-    # client((host, port), expr, show_steps,
-    #        cache_result, cache_control)
-    # client((host, port), expr_2, show_steps,
-    #             cache_result, cache_control)
+    print("here are the expresssions you need to choose from\n")
+    print("1."+ str(expr)+"\n"+"2."+str(expr_2) + "\n"+"3."+str(expr3)+ "\n"+"4."+str(expr4) + "\n"+"5"+str(expr5) + "\n"+"6."+str(expr6)+"\n")
+
+    while True:
+        inputt = int(input("Please chose an expression to calculate from 1-6: "))
+        while inputt>6 or inputt<1:
+            print("invalid input try again")
+            inputt = int(input("Please chose an expression to calculate from 1-6: "))
+        showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
+        if showsteps.lower() == "N":
+            show_steps = False
+        elif showsteps.lower() == "Y":
+            show_steps = True
+        while showsteps!= "Y" or showsteps!= "N":
+            print("please be careful to write in uppercase")
+            showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
+        if inputt == 1:
+            client((host, port), expr, show_steps, cache_result=True, cache_control=120)
+        if inputt==2:
+            client((host, port), expr_2, show_steps, cache_result=True, cache_control=120)
+        if inputt==3:
+            client((host, port), expr3, show_steps, cache_result=True, cache_control=120)
+        if inputt==4:
+            client((host, port), expr4, show_steps, cache_result=True, cache_control=120)
+        if inputt==5:
+            client((host, port), expr5, show_steps, cache_result=True, cache_control=120)
+        if inputt==6:
+            client((host, port), expr6, show_steps, cache_result=True, cache_control=120)
+
+        exitinput = input("if you want to stop the connection please write stop:")
+        if inputt == 'stop':
+            print("Stopping the connection...")
+            break
     # # * Change in end (2)
