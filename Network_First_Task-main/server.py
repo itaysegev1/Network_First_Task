@@ -77,6 +77,7 @@ def process_request(request: api.CalculatorHeader) -> api.CalculatorHeader:
 
 
 def server(host: str, port: int) -> None:
+
     # socket(socket.AF_INET, socket.SOCK_STREAM)
     # (1) AF_INET is the address family for IPv4 (Address Family)
     # (2) SOCK_STREAM is the socket type for TCP (Socket Type) - [SOCK_DGRAM is the socket type for UDP]

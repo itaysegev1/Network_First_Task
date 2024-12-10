@@ -143,6 +143,7 @@ if __name__ == "__main__":
             show_steps = True
         while showsteps!= "Y" or showsteps!= "N":
             print("please be careful to write in uppercase")
+
             showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
         if inputt == 1:
             client((host, port), expr, show_steps, cache_result=True, cache_control=120)

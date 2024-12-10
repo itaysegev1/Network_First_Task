@@ -134,6 +134,7 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                 # * Change in end (1)
             try:
                 # Process the request
+
                 try:
                     request = api.CalculatorHeader.unpack(data)
                 except Exception as e:
