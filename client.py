@@ -2,6 +2,8 @@ import socket
 import api
 import argparse
 import api
+import calculator
+from api import CalculatorHeader
 
 # region Predefined
 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     cache_control = 2**16 - 1
     # * Change in start (2)
     # First request - will go to server
-    client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
+    client((host, port), expr, show_steps=True, cache_result=True, cache_control=CalculatorHeader.MAX_CACHE_CONTROL)
     # Second request - should come from proxy cache
     client((host, port), expr, show_steps=True, cache_result=True, cache_control=120)
     # # Different expression - will go to server
