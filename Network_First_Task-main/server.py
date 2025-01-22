@@ -97,7 +97,7 @@ def server(host: str, port: int) -> None:
 
         while True:
             try:
-                # Establish connection with client.
+                # Establish connection with client and accept his request
                 
                 client_socket, address = server_socket.accept()
 
@@ -126,7 +126,7 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
             
             data = client_socket.recv(api.BUFFER_SIZE)
             if not data: # * Change in start (1)
-                #client_socket.close()
+                print(f"{client_prefix} Connection closed")
                 break
                 # * Change in end (1)
 
@@ -156,7 +156,6 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                     e, api.CalculatorHeader.STATUS_SERVER_ERROR, CACHE_POLICY, CACHE_CONTROL).pack())
 
             # * Change in start (2)
-            print(f"{client_prefix} Connection closed")
             print(f"Listening on {host}:{port}")
             # * Change in end (2)
 

@@ -90,6 +90,7 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
 
         # Prepare the proxy socket
         # * Fill in start (1)
+        #here we added the two lines in order to connect the socket and listen
         proxy_socket.bind(proxy_address)
         proxy_socket.listen()
         # * Fill in end (1)
@@ -100,7 +101,7 @@ def proxy(proxy_address: tuple[str, int], server_adress: tuple[str, int]) -> Non
         while True:
             try:
                 # Establish connection with client.
-
+                #here the proxy accepts the clients request
                 client_socket, client_address = proxy_socket.accept()  # * Fill in start (2) # * Fill in end (2)
 
                 # Create a new thread to handle the client request
@@ -130,10 +131,10 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
             data = client_socket.recv(api.BUFFER_SIZE)  # * Fill in start (3) # * Fill in end (3)
 
             if not data:  # * Change in start (1)
+                print(f"{client_prefix} Connection closed")
                 break
                 # * Change in end (1)
             try:
-                # Process the request
 
                 try:
                     request = api.CalculatorHeader.unpack(data)
@@ -174,10 +175,9 @@ def client_handler(client_socket: socket.socket, client_address: tuple[str, int]
                 client_socket.sendall(api.CalculatorHeader.from_error(api.CalculatorServerError(
                     "Internal proxy error", e), api.CalculatorHeader.STATUS_SERVER_ERROR, False, 0).pack())
 
-            # * Change in start (2)
-            print(f"{client_prefix} Connection closed")
+
             print(f"Listening on {server_address[0]}:{server_address[1]}")
-            # * Change in end (2)
+
 
 
 if __name__ == '__main__':

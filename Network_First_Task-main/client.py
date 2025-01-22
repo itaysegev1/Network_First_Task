@@ -30,6 +30,7 @@ min_f = api.FUNCTIONS.MIN
 pow_f = api.FUNCTIONS.POW
 rand_f = api.FUNCTIONS.RAND
 
+
 # endregion
 
 
@@ -42,7 +43,7 @@ def process_response(response: api.CalculatorHeader) -> None:
         if steps:
             print("Steps:")
             expr, first, *rest = steps
-            print(f"{expr} = {first}", end="\n"*(not bool(rest)))
+            print(f"{expr} = {first}", end="\n" * (not bool(rest)))
             if rest:
                 print(
                     "".join(map(lambda v: f"\n{' ' * len(expr)} = {v}", rest)))
@@ -57,33 +58,52 @@ def process_response(response: api.CalculatorHeader) -> None:
             f"Unknown status code: {response.status_code}")
 
 
-def client(server_address: tuple[str, int], expression: api.Expression, show_steps: bool = False,
+def client(arr, server_address: tuple[str, int], expression: api.Expression, show_steps: bool = False,
            cache_result: bool = False, cache_control: int = api.CalculatorHeader.MAX_CACHE_CONTROL) -> None:
     server_prefix = f"{{{server_address[0]}:{server_address[1]}}}"
+
+    # Using with statement to manage the socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         client_socket.connect(server_address)
         print(f"{server_prefix} Connection established")
 
-        try:
-            request = api.CalculatorHeader.from_expression(
-                expression, show_steps, cache_result, cache_control)
+        while True:
+            try:
+                request = api.CalculatorHeader.from_expression(
+                    expression, show_steps, cache_result, cache_control)
+                request = request.pack()
+                print(f"{server_prefix} Sending request of length {len(request)} bytes")
+                client_socket.sendall(request)
 
-            request = request.pack()
-            print(f"{server_prefix} Sending request of length {len(request)} bytes")
-            client_socket.sendall(request)
+                response = client_socket.recv(api.BUFFER_SIZE)
+                print(f"{server_prefix} Got response of length {len(response)} bytes")
+                response = api.CalculatorHeader.unpack(response)
+                process_response(response)
 
-            response = client_socket.recv(api.BUFFER_SIZE)
-            print(f"{server_prefix} Got response of length {len(response)} bytes")
-            response = api.CalculatorHeader.unpack(response)
-            process_response(response)
-
-        except api.CalculatorError as e:
-            print(f"{server_prefix} Got error: {str(e)}")
-        except Exception as e:
-            print(f"{server_prefix} Unexpected error: {str(e)}")
-    print(f"{server_prefix} Connection closed")
-
-
+            except api.CalculatorError as e:
+                print(f"{server_prefix} Got error: {str(e)}")
+            except Exception as e:
+                print(f"{server_prefix} Unexpected error: {str(e)}")
+            inputt = input("Please chose an expression to calculate from 1-6, to exit press 7: ")
+            # handeling all sort of incorrect inputes from the client.
+            while not inputt.isdigit() or (int(inputt) > 7 or int(inputt) < 1):
+                print("invalid input try again")
+                inputt = input("Please chose an expression to calculate from 1-6, to exit press 7: ")
+            # casting inputt back to int after handung all casses so that we don't have to cast it again everytime
+            inputt = int(inputt)
+            if inputt == 7:
+                print("client closed")
+                break
+            # here the client chosses if he wants to see the steps or not + we handeled edge cases
+            showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
+            if showsteps.upper() == "N":
+                show_steps = False
+            elif showsteps.upper() == "Y":
+                show_steps = True
+            while showsteps.upper() != "Y" and showsteps.upper() != "N":
+                print("please be careful to write in uppercase")
+            #here we send the new expression.
+            expression = arr[inputt - 1]
 
 
 if __name__ == "__main__":
@@ -94,72 +114,55 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--host", type=str,
                             default=api.DEFAULT_PROXY_HOST, help="The host to connect to.")
 
-
     args = arg_parser.parse_args()
-
     host = args.host
     port = args.port
 
-    # * Change in start (1)
-    # Example expressions: (uncomment one of them for your needs)
-    # (1) '(sin(max(2, 3 * 4, 5, 6 * ((7 * 8) / 9), 10 / 11)) / 12) * 13' = -0.38748277824137206
+    # here we defined the 6 expressions the client can choose from:
     expr = mul_b(div_b(sin_f(max_f(2, mul_b(3, 4), 5, mul_b(
         6, div_b(mul_b(7, 8), 9)), div_b(10, 11))), 12), 13)  # (1)
+    expr2 = add_b(max_f(2, 3), 3)  # (2)
+    expr3 = add_b(3, div_b(mul_b(4, 2), pow_b(sub_b(1, 5), pow_b(2, 3))))  # (3)
+    expr4 = div_b(pow_b(add_b(1, 2), mul_b(3, 4)), mul_b(5, 6))  # (4)
+    expr5 = neg_u(neg_u(pow_b(add_b(1, add_b(2, 3)), neg_u(add_b(4, 5)))))  # (5)
+    expr6 = max_f(2, mul_b(3, 4), log_f(e_c), mul_b(6, 7), div_b(9, 8))  # (6)
+    expr7="stop"
 
-    # (2) '(max(2, 3) + 3)' = 6
-    expr_2 = add_b(max_f(2, 3), 3)  # (2)
+    # we put the expressions in an array in order to send all the expressions to the client function.
+    arr = [expr, expr2, expr3, expr4, expr5, expr6]
 
-    # (3) '3 + ((4 * 2) / ((1 - 5) ** (2 ** 3)))' = 3.0001220703125
-    expr3 = add_b(3, div_b(mul_b(4, 2), pow_b(sub_b(1, 5), pow_b(2, 3)))) # (3)
-
-    # (4) '((1 + 2) ** (3 * 4)) / (5 * 6)' = 17714.7
-    expr4 = div_b(pow_b(add_b(1, 2), mul_b(3, 4)), mul_b(5, 6)) # (4)
-
-    # (5) '-(-((1 + (2 + 3)) ** -(4 + 5)))' = 9.92290301275212e-08
-    expr5 = neg_u(neg_u(pow_b(add_b(1, add_b(2, 3)), neg_u(add_b(4, 5))))) # (5)
-
-    # (6) 'max(2, (3 * 4), log(e), (6 * 7), (9 / 8))' = 42
-    expr6 = max_f(2, mul_b(3, 4), log_f(e_c), mul_b(6, 7), div_b(9, 8)) # (6)
-    # * Change in end (1)
-    # Change the following values according to your needs:
-
-    show_steps = False  # Request the steps of the calculation
+    show_steps = False  # Request the steps of the calculation this is the default because the client can choose.
     cache_result = True  # Request to cache the result of the calculation
+
     # If the result is cached, this is the maximum age of the cached response
     # that the client is willing to accept (in seconds)
-    cache_control = 2**16 - 1
+    cache_control = 2 ** 16 - 1
+
     print("here are the expresssions you need to choose from\n")
-    print("1."+ str(expr)+"\n"+"2."+str(expr_2) + "\n"+"3."+str(expr3)+ "\n"+"4."+str(expr4) + "\n"+"5"+str(expr5) + "\n"+"6."+str(expr6)+"\n")
+    print("1." + str(expr) + "\n" + "2." + str(expr2) + "\n" + "3." + str(expr3) + "\n" +
+          "4." + str(expr4) + "\n" + "5" + str(expr5) + "\n" + "6." + str(expr6) + "\n" + "7." + str(expr7) + "\n")
 
-    while True:
-        inputt = int(input("Please chose an expression to calculate from 1-6: "))
-        while inputt>6 or inputt<1:
-            print("invalid input try again")
-            inputt = int(input("Please chose an expression to calculate from 1-6: "))
+    # here we handle the clients input only for the first time:
+    inputt = input("Please chose an expression to calculate from 1-6: ")
+
+    # handeling all sort of incorrect inputes from the client.
+    while not inputt.isdigit() or (int(inputt) > 6 or int(inputt) < 1):
+
+        print("invalid input try again")
+        inputt = input("Please chose an expression to calculate from 1-6: ")
+    # casting inputt back to int after handung all casses so that we don't have to cast it again everytime
+
+    inputt = int(inputt)
+    # here the client chosses if he wants to see the steps or not + we handeled edge cases
+
+    showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
+    if showsteps.upper() == "N":
+        show_steps = False
+    elif showsteps.upper() == "Y":
+        show_steps = True
+    while showsteps.upper() != "Y" and showsteps.upper() != "N":
+        print("please be careful to choose a correct answer")
         showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
-        if showsteps.lower() == "N":
-            show_steps = False
-        elif showsteps.lower() == "Y":
-            show_steps = True
-        while showsteps!= "Y" or showsteps!= "N":
-            print("please be careful to write in uppercase")
 
-            showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
-        if inputt == 1:
-            client((host, port), expr, show_steps, cache_result=True, cache_control=120)
-        if inputt==2:
-            client((host, port), expr_2, show_steps, cache_result=True, cache_control=120)
-        if inputt==3:
-            client((host, port), expr3, show_steps, cache_result=True, cache_control=120)
-        if inputt==4:
-            client((host, port), expr4, show_steps, cache_result=True, cache_control=120)
-        if inputt==5:
-            client((host, port), expr5, show_steps, cache_result=True, cache_control=120)
-        if inputt==6:
-            client((host, port), expr6, show_steps, cache_result=True, cache_control=120)
-
-        exitinput = input("if you want to stop the connection please write stop:")
-        if inputt == 'stop':
-            print("Stopping the connection...")
-            break
-    # # * Change in end (2)
+    # sends to client the array of expressions and all the relevant fields needed in order to send the clients first request.
+    client(arr, (host, port), arr[inputt - 1], show_steps, cache_result=True, cache_control=120)
