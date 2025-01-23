@@ -69,6 +69,7 @@ def client(arr, server_address: tuple[str, int], expression: api.Expression, sho
 
         while True:
             try:
+                #for infinity time on proxy cache control need to be CalculatorHeader.MAX_CACHE_CONTROL
                 request = api.CalculatorHeader.from_expression(
                     expression, show_steps, cache_result, cache_control)
                 request = request.pack()
@@ -163,6 +164,7 @@ if __name__ == "__main__":
     while showsteps.upper() != "Y" and showsteps.upper() != "N":
         print("please be careful to choose a correct answer")
         showsteps = input("Y-showsteps, N-only final answer\n" + "please chose:")
+
 
     # sends to client the array of expressions and all the relevant fields needed in order to send the clients first request.
     client(arr, (host, port), arr[inputt - 1], show_steps, cache_result=True, cache_control=120)
